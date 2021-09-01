@@ -1,16 +1,19 @@
 import 'source-map-support/register';
 
-import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/apiGateway';
+import { APIGatewayProxyHandler } from 'aws-lambda';
 import { formatJSONResponse } from '@libs/apiGateway';
 import { middyfy } from '@libs/lambda';
 
-import schema from './schema';
+import { getProducts } from '../../mock-data/books';
 
-const getProductsList: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
-  return formatJSONResponse({
-    products: `Hello welcome to the exciting Serverless world!`,
-    event,
-  });
+const getProductsList: APIGatewayProxyHandler = async () => {
+  try {
+    const books = await getProducts() || []
+
+    return formatJSONResponse({ books });
+  } catch (e) {
+    return formatJSONResponse({ data: { code: 500, message: "Server error" } })
+  }
 }
 
 export const main = middyfy(getProductsList);
